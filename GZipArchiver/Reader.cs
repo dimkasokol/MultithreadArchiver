@@ -41,7 +41,7 @@ namespace GZipArchiver
         {
             lock (queueLocker)
             {
-                while (blockQueue.Count > 512)
+                while (blockQueue.Count > 64)
                     Monitor.Wait(queueLocker);
 
                 blockQueue.Enqueue(block);

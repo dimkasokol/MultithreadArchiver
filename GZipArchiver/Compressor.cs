@@ -41,7 +41,7 @@ namespace GZipArchiver
         {
             lock (dictionaryLocker)
             {
-                while (blockDictionary.Count > 512)
+                while (blockDictionary.Count > 64)
                     Monitor.Wait(dictionaryLocker);
 
                 blockDictionary.Add(block.Id, block);
