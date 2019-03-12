@@ -29,7 +29,10 @@ namespace GZipArchiver
                     Monitor.Wait(queueLocker);
 
                 if (blockQueue.Count == 0)
+                {
+                    Monitor.PulseAll(queueLocker);
                     return null;
+                }
 
                 var block = blockQueue.Dequeue();
                 Monitor.PulseAll(queueLocker);

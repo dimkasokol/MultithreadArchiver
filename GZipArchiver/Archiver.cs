@@ -89,7 +89,7 @@ namespace GZipArchiver
         private void ConfigureLogger()
         {
             var config = new LoggingConfiguration();
-            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("logfile") { FileName = "log.txt" });
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, new FileTarget("logfile") { FileName = "log.txt", DeleteOldFileOnStartup = true, ConcurrentWrites = true });
             LogManager.Configuration = config;
         }
     }

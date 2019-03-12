@@ -8,19 +8,19 @@ namespace ConsoleClient
         static void Main(string[] args)
         {
 #if DEBUG
-            args = new string[]
-            {
-                "compress",
-                "book.pdf",
-                "_book.pdf",
-                "logging"
-            };
             //args = new string[]
             //{
-            //    "decompress",
-            //    "_book.pdf.gz",
-            //    "_book.pdf"
+            //    "compress",
+            //    "book.pdf",
+            //    "_book.pdf",
+            //    "logging"
             //};
+            args = new string[]
+            {
+                "decompress",
+                "_book.pdf.gz",
+                "_book.pdf"
+            };
 #endif
             if (args.Length < 3 || args.Length > 4)
             {

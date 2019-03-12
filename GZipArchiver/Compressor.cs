@@ -11,12 +11,23 @@ namespace GZipArchiver
         private readonly IReadedHolder readedHolder;
         private readonly Dictionary<int, BytesBlock> blockDictionary;
         private readonly object dictionaryLocker;
+        private readonly object threadLocker;
+        private int threadCount;
 
         public Compressor(CompressionMode mode, IReadedHolder readedHolder, bool logging) : base(mode, logging)
         {
             this.readedHolder = readedHolder;
             blockDictionary = new Dictionary<int, BytesBlock>();
             dictionaryLocker = new object();
+            threadLocker = new object();
+            threadCount = 0;
+        }
+
+        public override Thread GetWorkerThread()
+        {
+            lock (threadLocker)
+                threadCount++;
+            return base.GetWorkerThread();
         }
 
         public BytesBlock GetBytesBlock(int id)
@@ -26,10 +37,14 @@ namespace GZipArchiver
                 var block = new BytesBlock();
 
                 while (!blockDictionary.TryGetValue(id, out block))
-                    if (Runable)
-                        Monitor.Wait(dictionaryLocker);
-                    else
+                {
+                    if (!Runable)
+                    {
+                        Monitor.PulseAll(dictionaryLocker);
                         return null;
+                    }
+                    Monitor.Wait(dictionaryLocker);
+                }
 
                 blockDictionary.Remove(id);
                 Monitor.PulseAll(dictionaryLocker);
@@ -79,7 +94,12 @@ namespace GZipArchiver
             }
             finally
             {
-                Runable = false;
+                lock (threadLocker)
+                {
+                    threadCount--;
+                    if (threadCount == 0)
+                        Runable = false;
+                }
             }
         }
 
@@ -115,7 +135,12 @@ namespace GZipArchiver
             }
             finally
             {
-                Runable = false;
+                lock (threadLocker)
+                {
+                    threadCount--;
+                    if (threadCount == 0)
+                        Runable = false;
+                }
             }
         }
     }
