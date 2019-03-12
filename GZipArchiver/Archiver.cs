@@ -66,6 +66,7 @@ namespace GZipArchiver
                         worker.Runable = false;
                     if (logging)
                         logger.Error(archiverException, "{0}ion {1} to {2} failed", new object[] { mode, input, output });
+                    inProcessing = false;
                     throw archiverException;
                 }
 
@@ -78,6 +79,8 @@ namespace GZipArchiver
             if (logging)
                 logger.Info("{0}ion {1} to {2} finished", new object[] { mode, input, output });
             LogManager.Shutdown();
+
+            inProcessing = false;
         }
 
         private void WorkerErrorReceived(object sender, WorkerErrorEventArgs e) => 
