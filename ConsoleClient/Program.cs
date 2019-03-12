@@ -11,14 +11,14 @@ namespace ConsoleClient
             //args = new string[3]
             //{
             //    "compress",
-            //    "svn.txt",
-            //    "_svn.txt"
+            //    "book.pdf",
+            //    "_book.pdf"
             //};
             args = new string[3]
             {
                 "decompress",
-                "_svn.txt.gz",
-                "_svn.txt"
+                "_book.pdf.gz",
+                "_book.pdf"
             };
 #endif
             if (args.Length != 3)

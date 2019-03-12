@@ -6,10 +6,16 @@ namespace GZipArchiver
 {
     public class Archiver
     {
+        private bool inProcessing;
         private ArchiverException archiverException;
         private List<Worker> workers;
 
         public event EventHandler<ArchiverInfoEventArgs> StatusUpdated;
+
+        public Archiver()
+        {
+            inProcessing = false;
+        }
 
         public void Compress(string input, string output) => Processing(input, output, CompressionMode.Compress);
 
@@ -17,6 +23,10 @@ namespace GZipArchiver
 
         private void Processing(string input, string output, CompressionMode mode)
         {
+            if (inProcessing)
+                throw new ArchiverException("processing already running", null);
+            inProcessing = true;
+
             archiverException = null;
             workers = new List<Worker>(3);
 
@@ -40,13 +50,19 @@ namespace GZipArchiver
             {
                 if (archiverException != null)
                 {
-                    reader.Runable = false;
+                    foreach (var worker in workers)
+                        worker.Runable = false;
+                    inProcessing = false;
                     throw archiverException;
                 }
-                if (!workers.Exists(w => w.Runable))
-                    return;
+
                 StatusUpdated?.Invoke(this, new ArchiverInfoEventArgs(mode, reader.FileLength, reader.Position));
+
+                if (!workers.Exists(w => w.Runable))
+                    break;
             }
+
+            inProcessing = false;
         }
 
         private void WorkerErrorReceived(object sender, WorkerErrorEventArgs e) => 

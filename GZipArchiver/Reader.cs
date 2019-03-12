@@ -65,12 +65,12 @@ namespace GZipArchiver
                         if (!Runable)
                             return;
 
-                        Position = stream.Position;
-
                         var bytesExpect = stream.Length - stream.Position;
                         var bytesToRead = blockLength < bytesExpect ? blockLength : (int)bytesExpect;
                         var bytes = new byte[bytesToRead];
                         stream.Read(bytes, 0, bytesToRead);
+
+                        Position = stream.Position;
 
                         AddBytesBlock(new BytesBlock(blockId, bytes));
                         blockId++;
@@ -98,6 +98,9 @@ namespace GZipArchiver
 
                     while (stream.Position < stream.Length)
                     {
+                        if (!Runable)
+                            return;
+
                         var lengthBlock = new byte[8];
                         stream.Read(lengthBlock, 0, lengthBlock.Length);
                         var blockLength = BitConverter.ToInt32(lengthBlock, 4);
@@ -106,9 +109,10 @@ namespace GZipArchiver
                         lengthBlock.CopyTo(bytesBlock, 0);
                         stream.Read(bytesBlock, 8, blockLength - 8);
 
+                        Position = stream.Position;
+
                         AddBytesBlock(new BytesBlock(blockId, bytesBlock));
                         blockId++;
-                        Position = stream.Position;
                     }
                 }
             }
