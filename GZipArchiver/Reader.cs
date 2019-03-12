@@ -15,7 +15,7 @@ namespace GZipArchiver
 
         public long Position { get; private set; }
 
-        public Reader(CompressionMode mode, string input) : base(mode, input)
+        public Reader(CompressionMode mode, string input, bool logging) : base(mode, input, logging)
         {
             blockQueue = new Queue<BytesBlock>();
             queueLocker = new object();
@@ -65,12 +65,14 @@ namespace GZipArchiver
                         if (!Runable)
                             return;
 
-                        Position = stream.Position;
+                        LoggingInfo("Reading block {0}", new object[] { blockId });
 
                         var bytesExpect = stream.Length - stream.Position;
                         var bytesToRead = blockLength < bytesExpect ? blockLength : (int)bytesExpect;
                         var bytes = new byte[bytesToRead];
                         stream.Read(bytes, 0, bytesToRead);
+
+                        Position = stream.Position;
 
                         AddBytesBlock(new BytesBlock(blockId, bytes));
                         blockId++;
@@ -79,6 +81,7 @@ namespace GZipArchiver
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "File reading failed");
                 InvokeWorkerError(exc);
             }
             finally
@@ -98,6 +101,11 @@ namespace GZipArchiver
 
                     while (stream.Position < stream.Length)
                     {
+                        if (!Runable)
+                            return;
+
+                        LoggingInfo("Reading block {0}", new object[] { blockId });
+
                         var lengthBlock = new byte[8];
                         stream.Read(lengthBlock, 0, lengthBlock.Length);
                         var blockLength = BitConverter.ToInt32(lengthBlock, 4);
@@ -106,14 +114,16 @@ namespace GZipArchiver
                         lengthBlock.CopyTo(bytesBlock, 0);
                         stream.Read(bytesBlock, 8, blockLength - 8);
 
+                        Position = stream.Position;
+
                         AddBytesBlock(new BytesBlock(blockId, bytesBlock));
                         blockId++;
-                        Position = stream.Position;
                     }
                 }
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "File reading failed");
                 InvokeWorkerError(exc);
             }
             finally

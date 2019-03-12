@@ -8,7 +8,7 @@ namespace GZipArchiver
         protected string FileName { get; }
         private Thread thread;
 
-        public FileWorker(CompressionMode mode, string file) : base(mode)
+        public FileWorker(CompressionMode mode, string file, bool logging) : base(mode, logging)
         {
             FileName = file;
         }

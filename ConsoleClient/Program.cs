@@ -8,26 +8,38 @@ namespace ConsoleClient
         static void Main(string[] args)
         {
 #if DEBUG
-            //args = new string[3]
-            //{
-            //    "compress",
-            //    "svn.txt",
-            //    "_svn.txt"
-            //};
-            args = new string[3]
+            args = new string[]
             {
-                "decompress",
-                "_svn.txt.gz",
-                "_svn.txt"
+                "compress",
+                "book.pdf",
+                "_book.pdf",
+                "logging"
             };
+            //args = new string[]
+            //{
+            //    "decompress",
+            //    "_book.pdf.gz",
+            //    "_book.pdf"
+            //};
 #endif
-            if (args.Length != 3)
+            if (args.Length < 3 || args.Length > 4)
             {
                 WriteResult("wrong number of parameters");
                 return;
             }
 
-            var archiver = new Archiver();
+            var logging = false;
+            if (args.Length == 4)
+            {
+                if (args[3] != "logging")
+                {
+                    WriteResult($"wrong parameter {args[3]}");
+                    return;
+                }
+                logging = true;
+            }
+
+            var archiver = new Archiver(logging);
             archiver.StatusUpdated += WriteProgress;
 
             try

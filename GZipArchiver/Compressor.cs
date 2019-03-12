@@ -12,7 +12,7 @@ namespace GZipArchiver
         private readonly Dictionary<int, BytesBlock> blockDictionary;
         private readonly object dictionaryLocker;
 
-        public Compressor(CompressionMode mode, IReadedHolder readedHolder) : base(mode)
+        public Compressor(CompressionMode mode, IReadedHolder readedHolder, bool logging) : base(mode, logging)
         {
             this.readedHolder = readedHolder;
             blockDictionary = new Dictionary<int, BytesBlock>();
@@ -60,6 +60,8 @@ namespace GZipArchiver
                     if (block == null)
                         return;
 
+                    LoggingInfo("Compressing block {0}", new object[] { block.Id });
+
                     byte[] bytes;
                     using (var memStream = new MemoryStream())
                     {
@@ -72,6 +74,7 @@ namespace GZipArchiver
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "Compressing failed");
                 InvokeWorkerError(exc);
             }
             finally
@@ -90,6 +93,8 @@ namespace GZipArchiver
                     if (compressedBlock == null)
                         return;
 
+                    LoggingInfo("Decompressing block {0}", new object[] { compressedBlock.Id });
+
                     BytesBlock originalBlock;
                     using (var memStream = new MemoryStream(compressedBlock.Bytes))
                     {
@@ -105,6 +110,7 @@ namespace GZipArchiver
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "Decompressing failed");
                 InvokeWorkerError(exc);
             }
             finally

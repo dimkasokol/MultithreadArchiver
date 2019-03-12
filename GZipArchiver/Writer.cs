@@ -8,7 +8,7 @@ namespace GZipArchiver
     {
         private readonly IProcessedHolder processedHolder;
 
-        public Writer(CompressionMode mode, string file, IProcessedHolder processedHolder) : base(mode, file)
+        public Writer(CompressionMode mode, string file, IProcessedHolder processedHolder, bool logging) : base(mode, file, logging)
         {
             this.processedHolder = processedHolder;
         }
@@ -30,6 +30,8 @@ namespace GZipArchiver
                     if (block == null)
                         return;
 
+                    LoggingInfo("Writing block {0}", new object[] { block.Id });
+
                     BitConverter.GetBytes(block.Length).CopyTo(block.Bytes, 4);
 
                     using (var stream = File.OpenWrite(fileName))
@@ -43,6 +45,7 @@ namespace GZipArchiver
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "File writing failed");
                 InvokeWorkerError(exc);
             }
             finally
@@ -66,6 +69,8 @@ namespace GZipArchiver
                     if (block == null)
                         return;
 
+                    LoggingInfo("Writing block {0}", new object[] { block.Id });
+
                     using (var stream = File.OpenWrite(FileName))
                     {
                         stream.Position = stream.Length;
@@ -77,6 +82,7 @@ namespace GZipArchiver
             }
             catch (Exception exc)
             {
+                LoggingError(exc, "File writing failed");
                 InvokeWorkerError(exc);
             }
             finally
